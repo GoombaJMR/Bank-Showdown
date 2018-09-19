@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ####################################################################
 ######    BANK  SHOWDOWN    ###############    JULIAN  RICE  #######
 ####################################################################
@@ -20,6 +21,8 @@ class Player:
     self.name = name
     self.history = history
     self.money = 5
+  def currentMoney(self):
+    return self.money
   def makeChoice(self, choice):
     "Set Player choice"
     self.choice = choice
@@ -47,6 +50,13 @@ class Player:
     "Show the complete transaction history for the Player"
     for obj in self.history:
       print(obj)
+  def lastHistory(self, times):
+    newHistory = []
+    for number in range(times):
+      tester = -number
+      newYatsu = self.history[tester]
+      newHistory.append(newYatsu)
+    return newHistory
 
 def clear():
     "Clear the screen"
@@ -124,7 +134,7 @@ def historyMutate(player):
 def showResults(player1, opponent):
   "The results of the round are displayed in this function"
   printLine()
-  print("$$-ROUND RESULTS-$$")
+  print("\n$$-ROUND RESULTS-$$")
   print(player1.showName() + " -> " + player1.showBalance())
   print(opponent.showName() + " -> " + opponent.showBalance())
   historyMutate(player1)
@@ -155,14 +165,81 @@ def showdown(player1, opponent, move1, move2):
     player1.stealMoney()
   showResults(player1, opponent)
 
-#def singleplayer(player):
+def singleplayer(player, computer, mode):
+  "General flow for the 1 player mode"
+  turn = 1
+  while True:
+    sleep(turn/1.5) ; clear() ; printLine()
+    print("[Turn " + str(turn) + "]   " + player.showName() + "   " + player.showBalance())
+    print("Enemy's " + computer.showBalance())
+    currentMoveP1 = moveSelection(player)
+    moneyDifferential = player.currentMoney() - computer.currentMoney()
+    if mode == 1: #EASY
+      name = "EASY"
+      moveChoice = randint(ADDER, BLOCK)
+    elif mode == 2: #NORMAL
+      name = "NORMAL"
+      if moneyDifferential >= 3:
+        moveChoice = randint(STEAL, BLOCK)
+      else:
+        moveChoiceT = randint(1, 2)
+        moveChoice = ADDER if moveChoiceT == 1 else BLOCK
+    elif mode == 3: #HARD
+      name = "HARD"
+      if turn != 1 and turn != 2:
+        lHistory = player.lastHistory(2)
+        rHistory = computer.lastHistory(2)
+        previousMove, beforeThatMove = lHistory[0], lHistory[1]
+        compPrev, compBefore = rHistory[0], rHistory[1]
+        if player.currentMoney() == 8:
+          print(previousMove)
+          print(beforeThatMove)
+          if previousMove == STEAL and beforeThatMove == STEAL:
+            moveChoice = randint(STEAL, BLOCK)
+          elif previousMove == BLOCK:
+            moveChoice = STEAL
+          else:
+            moveChoice = BLOCK
+        elif player.currentMoney() == 9:
+          if compPrev != ADDER:
+            moveChoice = randint(ADDER, STEAL)
+          else:
+            moveChoice = ADDER
+        elif moneyDifferential >= 2:
+          if compPrev != ADDER and compBefore != ADDER:
+            moveChoice = ADDER
+          elif previousMove == STEAL:
+            moveChoice = randint(STEAL, BLOCK)
+          elif beforeThatMove == STEAL:
+            moveChoice = BLOCK
+          else:
+            moveChoice = randint(ADDER, STEAL)
+        else:
+          moveChoice = randint(STEAL, BLOCK)
+      else:
+        moveChoice = randint(ADDER, BLOCK)
+    computer.addMoveToHistory(moveChoice, computer.history)
+    showdown(player, computer, currentMoveP1, moveChoice)
+    if player.currentMoney() >= 10 or computer.currentMoney() >= 10:
+      break
+    turn += 1
+  print(player.showName() + "'s FINAL BALANCE: $" + str(player.currentMoney()))
+  print(computer.showName() + "'s FINAL BALANCE: $" + str(computer.currentMoney()))
+  print("TURNS TAKEN: " + str(turn))
+  if (player.money > computer.money):
+    print("CONGRATULATIONS, PLAYER 1!! " + player.name)
+    print("You managed to beat the " + name + " computer!")
+  else:
+    print("As expected, " + name + " mode...")
+  printLine()
 
 def multiplayer(player1, player2):
   "General flow for the 2 player mode"
   turn = 1
   while True:
-    sleep(5) ; clear() ; printLine()
+    sleep(2.5) ; clear() ; printLine()
     print("[Turn " + str(turn) + "]   " + player1.showName() + "   " + player1.showBalance())
+    print("Enemy's " + player2.showBalance())
     currentMoveP1 = moveSelection(player1)
     clear() ; printLine()
     print("[Turn " + str(turn) + "]   " + player2.showName() + "   " + player2.showBalance())
@@ -172,10 +249,10 @@ def multiplayer(player1, player2):
       break
     turn += 1
   printLine()
-  print(player1.showName() + "'s FINAL BALANCE: $" + str(player1.money))
-  print(player2.showName() + "'s FINAL BALANCE: $" + str(player2.money))
+  print(player1.showName() + "'s FINAL BALANCE: $" + str(player1.currentMoney()))
+  print(player2.showName() + "'s FINAL BALANCE: $" + str(player2.currentMoney()))
   print("TURNS TAKEN: " + str(turn))
-  if (player1.money > player2.money):
+  if (player1.currentMoney() > player2.currentMoney()):
     print("CONGRATULATIONS, PLAYER 1!! " + player1.name)
   else:
     print("EXCELLENT FEAT, PLAYER 2!! " + player2.name)
@@ -187,13 +264,29 @@ def playGame():
   mode = int(input("\n$$ Enter a MODE [?]: "))
   instructions(mode)
   p1Name = input("\n$$ Player 1 - Enter your name here: ")
-  p2Name = input("$$ Player 2 - Enter your name here: ")
+  if mode == 1:
+    while True:
+      compDiff = input("$$ Choose a difficulty level [HARD] [NORMAL] [EASY]: ")
+      if compDiff != "EASY" and compDiff != "NORMAL" and compDiff != "HARD":
+        print("You made a typo error! ")
+        sleep(2.5)
+      else:
+        break
+  else:
+    p2Name = input("$$ Player 2 - Enter your name here: ")
   p1History = []
   p2History = []
   print("Loading...")
   if mode == 1:
     player1 = Player(p1Name, p1History)
-    #singleplayer(player1)
+    computer = Player("Kuribo", p2History)
+    if compDiff == "EASY":
+      difficultyMode = 1
+    elif compDiff == "NORMAL":
+      difficultyMode = 2
+    else:
+      difficultyMode = 3
+    singleplayer(player1, computer, difficultyMode)
   if mode == 2:
     player1 = Player(p1Name, p1History)
     player2 = Player(p2Name, p2History)
