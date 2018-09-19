@@ -12,7 +12,7 @@ I've finished working on the single player mode for Bank Trouble! It's been a co
 
 If you would like to try the game, simply download the script and run it with ./BankShowdown.py
 This was written in Python 3.6, and for mac or other users, you might need permission to run it. You can do that with the following:
-  ~$ chmod 777 BankShowdown.py
+```~$ chmod 777 BankShowdown.py```
 
 If you have any questions, requests for more difficulties or whatever, then ask!!
 
