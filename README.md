@@ -1,9 +1,13 @@
 Minigame that I am working on here and there.
 It's pretty simple, but the people who have played it have said that it's pretty intense!
 
-I can't wait to do more with this... maybe even play with Turtle/Tkinter to add graphcis when the time comes...
+I can't wait to do more with this... maybe even play with Turtle/Tkinter to add graphics when the time comes...
 
 More details soon.
+-------------------------------
+Update (5/30/2019)
+-------------------------------
+It's official! I will be writing up a PyQt5 GUI program for Bank Showdown, with both single player and multiplayer (2p, local) support. Please look forward to more updates as I work on this!
 
 -------------------------------
 Update (9/18/2018)
